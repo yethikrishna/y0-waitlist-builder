@@ -12,15 +12,15 @@ export const Y0Logo = ({ size = 32, className = "" }: Y0LogoProps) => (
     className={className}
     xmlns="http://www.w3.org/2000/svg"
   >
-    <circle cx="24" cy="24" r="22" fill="currentColor" />
+    <rect x="2" y="2" width="44" height="44" rx="10" fill="currentColor" />
     <text
       x="24"
       y="32"
       textAnchor="middle"
-      fontSize="22"
-      fontWeight="bold"
+      fontSize="20"
+      fontWeight="500"
       fill="oklch(var(--primary-foreground))"
-      fontFamily="Roobert, system-ui, sans-serif"
+      fontFamily="system-ui, -apple-system, sans-serif"
     >
       y0
     </text>
@@ -36,20 +36,17 @@ export const Y0LogoMark = ({ size = 24, className = "" }: Y0LogoProps) => (
     className={className}
     xmlns="http://www.w3.org/2000/svg"
   >
-    <circle cx="16" cy="16" r="15" fill="currentColor" stroke="currentColor" strokeWidth="1" />
-    <path
-      d="M10 10L16 18L22 10"
-      stroke="oklch(var(--primary-foreground))"
-      strokeWidth="2.5"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      fill="none"
-    />
-    <circle
-      cx="16"
-      cy="22"
-      r="3"
+    <rect x="1" y="1" width="30" height="30" rx="7" fill="currentColor" />
+    <text
+      x="16"
+      y="21.5"
+      textAnchor="middle"
+      fontSize="13"
+      fontWeight="500"
       fill="oklch(var(--primary-foreground))"
-    />
+      fontFamily="system-ui, -apple-system, sans-serif"
+    >
+      y0
+    </text>
   </svg>
 );
