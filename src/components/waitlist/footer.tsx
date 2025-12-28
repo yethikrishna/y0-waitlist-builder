@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Y0LogoMark } from "@/components/ui/y0-logo";
 import { Twitter, Github, MessageCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Link } from "react-router-dom";
 
 const socialLinks = [
   { icon: Twitter, label: "Twitter", href: "#" },
@@ -26,6 +27,21 @@ export const WaitlistFooter = () => {
             <span className="text-sm text-muted-foreground">
               © {new Date().getFullYear()} y0. All rights reserved.
             </span>
+          </div>
+
+          {/* Powered by Compyle */}
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground">Powered by</span>
+            <Link 
+              to="/compyle"
+              className="opacity-60 hover:opacity-100 transition-opacity"
+            >
+              <img 
+                src="https://www.compyle.ai/compyle.svg" 
+                alt="Compyle" 
+                className="h-5 w-auto"
+              />
+            </Link>
           </div>
 
           {/* Links */}
