@@ -1,10 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
-import type { Json } from "@/integrations/supabase/types";
 
 export interface WaitlistSignup {
   email: string;
   referredBy?: string;
-  metadata?: Json;
 }
 
 export interface WaitlistResult {
@@ -16,45 +14,46 @@ export interface WaitlistResult {
   error?: string;
 }
 
+// Client-side validation (server also validates)
+const isValidEmail = (email: string): boolean => {
+  if (!email || typeof email !== 'string') return false;
+  if (email.length > 255) return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+const isValidReferralCode = (code: string | undefined): boolean => {
+  if (!code) return true;
+  if (typeof code !== 'string') return false;
+  return /^[a-f0-9]{12}$/i.test(code.trim());
+};
+
 export async function signupToWaitlist(data: WaitlistSignup): Promise<WaitlistResult> {
   try {
-    // Check if email already exists using edge function (secure)
-    const { data: checkResult, error: checkError } = await supabase.functions.invoke('check-email-exists', {
-      body: { email: data.email.toLowerCase().trim() }
-    });
-
-    if (checkError) {
-      console.error('Error checking email:', checkError);
+    const email = data.email.toLowerCase().trim();
+    
+    // Client-side validation
+    if (!isValidEmail(email)) {
       return {
         success: false,
-        error: 'Failed to check email. Please try again.'
+        error: 'Please enter a valid email address'
       };
     }
 
-    if (checkResult.exists) {
-      const spotsGained = (checkResult.referralCount || 0) * 5;
+    if (data.referredBy && !isValidReferralCode(data.referredBy)) {
       return {
-        success: true,
-        position: checkResult.position,
-        referralCode: checkResult.referralCode,
-        referralCount: checkResult.referralCount || 0,
-        spotsGained,
-        error: "You're already on the waitlist!"
+        success: false,
+        error: 'Invalid referral code format'
       };
     }
 
-    // Insert new signup
-    const insertData = {
-      email: data.email.toLowerCase().trim(),
-      referred_by: data.referredBy || null,
-      metadata: data.metadata || null
-    };
-
-    const { data: signup, error } = await supabase
-      .from('waitlist_signups')
-      .insert([insertData])
-      .select('position, referral_code')
-      .single();
+    // Call secure edge function for signup
+    const { data: result, error } = await supabase.functions.invoke('waitlist-signup', {
+      body: {
+        email,
+        referredBy: data.referredBy?.trim() || null
+      }
+    });
 
     if (error) {
       console.error('Waitlist signup error:', error);
@@ -64,22 +63,31 @@ export async function signupToWaitlist(data: WaitlistSignup): Promise<WaitlistRe
       };
     }
 
-    // Send admin notification (fire and forget)
-    supabase.functions.invoke('notify-admin-signup', {
-      body: {
-        email: data.email.toLowerCase().trim(),
-        position: signup.position,
-        referredBy: data.referredBy || null,
-        totalSignups: signup.position
-      }
-    }).catch(err => console.error('Failed to send admin notification:', err));
+    if (!result.success) {
+      return {
+        success: false,
+        error: result.error || 'Failed to join waitlist. Please try again.'
+      };
+    }
+
+    // Handle already exists case
+    if (result.alreadyExists) {
+      return {
+        success: true,
+        position: result.position,
+        referralCode: result.referralCode,
+        referralCount: result.referralCount || 0,
+        spotsGained: result.spotsGained || 0,
+        error: "You're already on the waitlist!"
+      };
+    }
 
     return {
       success: true,
-      position: signup.position,
-      referralCode: signup.referral_code,
-      referralCount: 0,
-      spotsGained: 0
+      position: result.position,
+      referralCode: result.referralCode,
+      referralCount: result.referralCount || 0,
+      spotsGained: result.spotsGained || 0
     };
   } catch (err) {
     console.error('Waitlist signup exception:', err);
@@ -92,7 +100,6 @@ export async function signupToWaitlist(data: WaitlistSignup): Promise<WaitlistRe
 
 export async function getWaitlistCount(): Promise<number> {
   try {
-    // Use the secure RPC function
     const { data, error } = await supabase.rpc('get_waitlist_count');
 
     if (error) {
