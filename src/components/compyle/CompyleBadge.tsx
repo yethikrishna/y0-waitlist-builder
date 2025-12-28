@@ -14,7 +14,7 @@ export function CompyleBadge() {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <span className="text-sm text-muted-foreground font-medium">Built with</span>
+      <span className="text-sm text-muted-foreground font-medium">Runs on</span>
       <img 
         src={compyleLogo} 
         alt="Compyle" 

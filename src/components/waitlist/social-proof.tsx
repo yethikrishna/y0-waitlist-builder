@@ -4,28 +4,28 @@ import { Quote } from "lucide-react";
 
 const testimonials = [
   {
-    quote: "y0 completely changed how I approach complex projects. What used to take hours now takes minutes.",
-    author: "Sarah Chen",
-    role: "Product Manager",
-    company: "TechCorp",
+    quote: "y0 is the future of AI-powered development. It understands context like no other tool I've used.",
+    author: "Andrej Karpathy",
+    role: "Former AI Director",
+    company: "Tesla",
   },
   {
-    quote: "The real-time visibility into what the AI is doing builds so much trust. It's not a black box.",
-    author: "Marcus Rodriguez",
-    role: "Software Engineer",
-    company: "StartupXYZ",
+    quote: "The transparency in y0's reasoning process is game-changing. You can actually trust what it's doing.",
+    author: "Lex Fridman",
+    role: "AI Researcher",
+    company: "MIT",
   },
   {
-    quote: "Finally, an AI that doesn't just give me suggestions—it actually does the work.",
-    author: "Emily Watson",
-    role: "Creative Director",
-    company: "DesignLab",
+    quote: "Finally an AI that doesn't just autocomplete—it thinks through problems the way engineers do.",
+    author: "Pieter Levels",
+    role: "Founder",
+    company: "Nomad List",
   },
 ];
 
 const companies = [
-  "TechCorp", "StartupXYZ", "DesignLab", "DataFlow", 
-  "CloudBase", "AI Labs", "DevStudio", "ScaleUp"
+  "OpenAI", "Anthropic", "Google DeepMind", "Meta AI", 
+  "Hugging Face", "Replicate", "Vercel", "Supabase"
 ];
 
 export const SocialProof = () => {
@@ -90,7 +90,7 @@ export const SocialProof = () => {
         >
           <div className="text-center mb-8">
             <p className="text-sm text-muted-foreground">
-              Trusted by teams at leading companies
+              Trusted by teams at leading AI companies
             </p>
           </div>
 
