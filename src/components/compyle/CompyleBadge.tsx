@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import compyleLogo from '@/assets/compyle-logo.svg';
 
 function QuestionMarkIcon({ className }: { className?: string }) {
   return (
@@ -32,7 +33,7 @@ export function CompyleBadge() {
     >
       <span className="text-xs text-muted-foreground">Runs on</span>
       <img 
-        src="https://www.compyle.ai/compyle.svg" 
+        src={compyleLogo} 
         alt="Compyle" 
         className="h-4 w-auto"
       />
