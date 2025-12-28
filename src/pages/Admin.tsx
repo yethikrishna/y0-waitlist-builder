@@ -40,6 +40,7 @@ const Admin = () => {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [isSignUpMode, setIsSignUpMode] = useState(false);
   const [signups, setSignups] = useState<WaitlistSignupRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -115,6 +116,31 @@ const Admin = () => {
       }
     } catch (err) {
       toast.error("Failed to sign in");
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoggingIn(true);
+
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: email.trim(),
+        password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/admin`
+        }
+      });
+
+      if (error) {
+        toast.error(error.message);
+      } else {
+        toast.success("Account created! You are now logged in.");
+      }
+    } catch (err) {
+      toast.error("Failed to sign up");
     } finally {
       setIsLoggingIn(false);
     }
@@ -270,11 +296,11 @@ const Admin = () => {
               <Y0LogoMark size={48} className="mx-auto mb-4 text-primary" />
               <h1 className="text-2xl font-bold">Admin Dashboard</h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Sign in with your admin account
+                {isSignUpMode ? "Create your admin account" : "Sign in with your admin account"}
               </p>
             </div>
 
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={isSignUpMode ? handleSignUp : handleLogin} className="space-y-4">
               <div className="relative">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
                 <Input
@@ -307,13 +333,23 @@ const Admin = () => {
                 {isLoggingIn ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Signing in...
+                    {isSignUpMode ? "Creating account..." : "Signing in..."}
                   </>
                 ) : (
-                  "Sign In"
+                  isSignUpMode ? "Sign Up" : "Sign In"
                 )}
               </Button>
             </form>
+
+            <div className="mt-4 text-center">
+              <button
+                type="button"
+                onClick={() => setIsSignUpMode(!isSignUpMode)}
+                className="text-sm text-muted-foreground hover:text-foreground"
+              >
+                {isSignUpMode ? "Already have an account? Sign In" : "Need an account? Sign Up"}
+              </button>
+            </div>
           </Card>
         </motion.div>
       </div>
