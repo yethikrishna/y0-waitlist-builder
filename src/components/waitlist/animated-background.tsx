@@ -1,8 +1,16 @@
 import { motion } from "framer-motion";
+import { ConstellationConnect } from "./animations/constellation-connect";
+import { LiquidMorphBlob } from "./animations/liquid-morph-blob";
 
 export const AnimatedBackground = () => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* Liquid morph blob - organic flowing background */}
+      <LiquidMorphBlob />
+
+      {/* Constellation connecting nodes */}
+      <ConstellationConnect />
+
       {/* Gradient arcs */}
       <motion.div
         className="absolute -top-1/2 -left-1/4 w-[150%] h-[150%] opacity-30"
