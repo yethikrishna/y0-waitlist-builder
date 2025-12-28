@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { signupToWaitlist } from "@/lib/waitlist";
+import { fireConfetti } from "@/lib/confetti";
 
 interface WaitlistFormProps {
   variant?: "hero" | "cta";
@@ -47,6 +48,11 @@ export const WaitlistForm = ({ variant = "hero" }: WaitlistFormProps) => {
       setPosition(result.position || null);
       setReferralCode(result.referralCode || null);
       setIsSuccess(true);
+
+      // Fire confetti celebration!
+      setTimeout(() => {
+        fireConfetti();
+      }, 100);
 
       if (result.error) {
         // Already on waitlist case
