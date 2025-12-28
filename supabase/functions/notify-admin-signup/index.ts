@@ -3,10 +3,11 @@ import { Resend } from "https://esm.sh/resend@2.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 const adminEmail = Deno.env.get("ADMIN_EMAIL");
+const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET");
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-internal-secret",
 };
 
 interface SignupNotification {
@@ -16,15 +17,84 @@ interface SignupNotification {
   totalSignups: number;
 }
 
+// Input validation helpers
+const isValidEmail = (email: string): boolean => {
+  if (!email || typeof email !== 'string') return false;
+  if (email.length > 255) return false;
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
+const isValidPosition = (pos: unknown): pos is number => {
+  return typeof pos === 'number' && Number.isInteger(pos) && pos > 0 && pos < 10000000;
+};
+
+const isValidReferralCode = (code: unknown): boolean => {
+  if (code === null || code === undefined) return true;
+  if (typeof code !== 'string') return false;
+  if (code.length === 0) return true;
+  // Referral codes are 12 character hex strings
+  return /^[a-f0-9]{12}$/i.test(code);
+};
+
+const sanitizeForHtml = (str: string): string => {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+};
+
 const handler = async (req: Request): Promise<Response> => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { email, position, referredBy, totalSignups }: SignupNotification = await req.json();
+    // Validate internal secret to prevent unauthorized calls
+    const requestSecret = req.headers.get("x-internal-secret");
+    if (!internalSecret || requestSecret !== internalSecret) {
+      console.warn("Unauthorized attempt to call notify-admin-signup");
+      return new Response(
+        JSON.stringify({ error: "Unauthorized" }),
+        { status: 401, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    const body = await req.json();
+    const { email, position, referredBy, totalSignups } = body as SignupNotification;
+
+    // Validate all inputs
+    if (!isValidEmail(email)) {
+      console.warn("Invalid email format in notification request");
+      return new Response(
+        JSON.stringify({ error: "Invalid request" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    if (!isValidPosition(position) || !isValidPosition(totalSignups)) {
+      console.warn("Invalid position values in notification request");
+      return new Response(
+        JSON.stringify({ error: "Invalid request" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    if (!isValidReferralCode(referredBy)) {
+      console.warn("Invalid referral code format in notification request");
+      return new Response(
+        JSON.stringify({ error: "Invalid request" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
 
     console.log(`Sending admin notification for new signup: ${email}`);
+
+    // Sanitize values for HTML output
+    const safeEmail = sanitizeForHtml(email);
+    const safeReferredBy = referredBy ? sanitizeForHtml(referredBy) : null;
 
     const emailHtml = `
 <!DOCTYPE html>
@@ -75,17 +145,17 @@ const handler = async (req: Request): Promise<Response> => {
               <!-- Email Info -->
               <div style="margin-top: 24px; background: rgba(255,255,255,0.05); border-radius: 12px; padding: 24px;">
                 <div style="color: #9ca3af; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;">Email Address</div>
-                <div style="color: #ffffff; font-size: 18px; font-weight: 600; word-break: break-all;">${email}</div>
+                <div style="color: #ffffff; font-size: 18px; font-weight: 600; word-break: break-all;">${safeEmail}</div>
               </div>
               
-              ${referredBy ? `
+              ${safeReferredBy ? `
               <!-- Referral Info -->
               <div style="margin-top: 16px; background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(16, 185, 129, 0.1) 100%); border: 1px solid rgba(34, 197, 94, 0.2); border-radius: 12px; padding: 20px;">
                 <div style="display: flex; align-items: center;">
                   <span style="font-size: 20px; margin-right: 12px;">🔗</span>
                   <div>
                     <div style="color: #86efac; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;">Referred By</div>
-                    <div style="color: #ffffff; font-size: 14px; font-family: monospace;">${referredBy}</div>
+                    <div style="color: #ffffff; font-size: 14px; font-family: monospace;">${safeReferredBy}</div>
                   </div>
                 </div>
               </div>
@@ -131,7 +201,7 @@ const handler = async (req: Request): Promise<Response> => {
     const emailResponse = await resend.emails.send({
       from: "Y0 Waitlist <onboarding@resend.dev>",
       to: [adminEmail!],
-      subject: `🎉 New Signup #${position}: ${email}`,
+      subject: `🎉 New Signup #${position}: ${safeEmail}`,
       html: emailHtml,
     });
 
@@ -141,14 +211,17 @@ const handler = async (req: Request): Promise<Response> => {
       status: 200,
       headers: { "Content-Type": "application/json", ...corsHeaders },
     });
-  } catch (error: any) {
-    console.error("Error sending admin notification:", error);
+  } catch (error: unknown) {
+    // Log full error details server-side only
+    console.error("Error sending admin notification:", {
+      message: error instanceof Error ? error.message : 'Unknown error',
+      timestamp: new Date().toISOString()
+    });
+    
+    // Return generic error to client - never expose internal details
     return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json", ...corsHeaders },
-      }
+      JSON.stringify({ error: "Failed to process notification", code: "NOTIFICATION_ERROR" }),
+      { status: 500, headers: { "Content-Type": "application/json", ...corsHeaders } }
     );
   }
 };
