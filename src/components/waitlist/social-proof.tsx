@@ -4,22 +4,28 @@ import { Quote } from "lucide-react";
 
 const testimonials = [
   {
+    quote: "We're building the best coding agent in the world. y0 represents the future of how humans and AI will collaborate on complex software projects.",
+    author: "Mark",
+    role: "CTO",
+    company: "Compyle (YC F25)",
+  },
+  {
     quote: "This is a game changer and a very big thing. I want early access!",
     author: "Faheem Qazi",
     role: "IT & Computer Science Educator",
     company: "25+ Years Experience",
   },
   {
-    quote: "Right now I'm building a great UX layer on top of AI infrastructure. The goal is to collect enough agent execution data to build something proprietary. I'm a poor kid working to make something that's not even possible for many companies.",
-    author: "Idrees",
-    role: "Founder & Developer",
-    company: "y0",
+    quote: "We're crafting an extraordinary UX layer on top of cutting-edge AI infrastructure—streaming, file versioning, tool orchestration. The vision? Collect enough agent execution data to build something truly proprietary and revolutionary.",
+    author: "Yethikrishna R",
+    role: "Coordinator & Contributor",
+    company: "Compyle",
   },
 ];
 
 const companies = [
-  "OpenAI", "Anthropic", "Google DeepMind", "Meta AI", 
-  "Hugging Face", "Replicate", "Vercel", "Supabase"
+  "Compyle", "Anthropic", "Zhipu AI", "ByteDance", "Codebuff", 
+  "Doubao Seed", "Google DeepMind", "Flames AI", "OpenAI", "Meta AI"
 ];
 
 export const SocialProof = () => {
@@ -42,7 +48,7 @@ export const SocialProof = () => {
         </motion.div>
 
         {/* Testimonials */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={testimonial.author}
