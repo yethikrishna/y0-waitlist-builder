@@ -90,21 +90,25 @@ export const WaitlistHero = () => {
 
         <motion.div
           variants={itemVariants}
-          className="flex flex-col items-center gap-4"
+          className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border">
-              <Users className="w-4 h-4" />
-              <span>
-                {isLoading ? (
-                  <span className="font-semibold text-foreground">...</span>
-                ) : (
-                  <AnimatedCounter target={count} duration={2.5} className="font-semibold text-foreground" />
-                )}
-                {" "}people already waiting
-              </span>
-            </div>
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border text-sm text-muted-foreground">
+            <Users className="w-4 h-4" />
+            <span>
+              {isLoading ? (
+                <span className="font-semibold text-foreground">...</span>
+              ) : (
+                <AnimatedCounter target={count} duration={2.5} className="font-semibold text-foreground" />
+              )}
+              {" "}people already waiting
+            </span>
           </div>
+        </motion.div>
+
+        <motion.div
+          variants={itemVariants}
+          className="mt-8"
+        >
           <CompyleBadge />
         </motion.div>
       </motion.div>
