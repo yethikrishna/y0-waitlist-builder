@@ -4,22 +4,16 @@ import { Quote } from "lucide-react";
 
 const testimonials = [
   {
-    quote: "y0 is the future of AI-powered development. It understands context like no other tool I've used.",
-    author: "Andrej Karpathy",
-    role: "Former AI Director",
-    company: "Tesla",
+    quote: "This is a game changer and a very big thing. I want early access!",
+    author: "Faheem Qazi",
+    role: "IT & Computer Science Educator",
+    company: "25+ Years Experience",
   },
   {
-    quote: "The transparency in y0's reasoning process is game-changing. You can actually trust what it's doing.",
-    author: "Lex Fridman",
-    role: "AI Researcher",
-    company: "MIT",
-  },
-  {
-    quote: "Finally an AI that doesn't just autocomplete—it thinks through problems the way engineers do.",
-    author: "Pieter Levels",
-    role: "Founder",
-    company: "Nomad List",
+    quote: "Right now I'm building a great UX layer on top of AI infrastructure. The goal is to collect enough agent execution data to build something proprietary. I'm a poor kid working to make something that's not even possible for many companies.",
+    author: "Idrees",
+    role: "Founder & Developer",
+    company: "y0",
   },
 ];
 
@@ -48,7 +42,7 @@ export const SocialProof = () => {
         </motion.div>
 
         {/* Testimonials */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-16">
           {testimonials.map((testimonial, index) => (
             <motion.div
               key={testimonial.author}

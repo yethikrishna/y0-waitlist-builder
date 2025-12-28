@@ -38,7 +38,7 @@ const exampleShowcases = [
 export function Hero() {
   return (
     <section className="hero">
-      <h1>Welcome to Acme</h1>
+      <h1>Welcome to y0</h1>
       <button>Get Started</button>
     </section>
   )
@@ -62,7 +62,7 @@ export function Hero() {
 ✓ Deploying to Vercel...
 
 🚀 Deployed successfully!
-https://acme-landing.vercel.app`
+https://y0-landing.vercel.app`
       } as Step,
     ],
   },

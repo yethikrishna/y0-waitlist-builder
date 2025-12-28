@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { getWaitlistCount } from "@/lib/waitlist";
 
-export function useWaitlistCount(baseCount: number = 0) {
+export function useWaitlistCount(baseCount: number = 10) {
   const [count, setCount] = useState(baseCount);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -9,7 +9,7 @@ export function useWaitlistCount(baseCount: number = 0) {
     const fetchCount = async () => {
       setIsLoading(true);
       const dbCount = await getWaitlistCount();
-      // Add base count for initial launch (simulated early signups)
+      // Start from base count (10) + actual signups
       setCount(dbCount + baseCount);
       setIsLoading(false);
     };
