@@ -31,8 +31,8 @@ const itemVariants = {
 };
 
 export const WaitlistHero = () => {
-  // Base count of 2500 for launch + actual DB signups
-  const { count, isLoading } = useWaitlistCount(2500);
+  // Base count of 10 + actual DB signups (live count)
+  const { count, isLoading } = useWaitlistCount(10);
 
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
