@@ -22,6 +22,7 @@ export type Database = {
           metadata: Json | null
           position: number | null
           referral_code: string | null
+          referral_count: number | null
           referred_by: string | null
         }
         Insert: {
@@ -31,6 +32,7 @@ export type Database = {
           metadata?: Json | null
           position?: number | null
           referral_code?: string | null
+          referral_count?: number | null
           referred_by?: string | null
         }
         Update: {
@@ -40,6 +42,7 @@ export type Database = {
           metadata?: Json | null
           position?: number | null
           referral_code?: string | null
+          referral_count?: number | null
           referred_by?: string | null
         }
         Relationships: []
@@ -49,6 +52,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_priority_position: {
+        Args: { user_email: string }
+        Returns: {
+          original_position: number
+          priority_position: number
+          referral_count: number
+          spots_gained: number
+        }[]
+      }
       get_waitlist_count: { Args: never; Returns: number }
     }
     Enums: {

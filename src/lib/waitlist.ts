@@ -11,6 +11,8 @@ export interface WaitlistResult {
   success: boolean;
   position?: number;
   referralCode?: string;
+  referralCount?: number;
+  spotsGained?: number;
   error?: string;
 }
 
@@ -19,15 +21,18 @@ export async function signupToWaitlist(data: WaitlistSignup): Promise<WaitlistRe
     // Check if email already exists
     const { data: existing } = await supabase
       .from('waitlist_signups')
-      .select('id, position, referral_code')
+      .select('id, position, referral_code, referral_count')
       .eq('email', data.email.toLowerCase().trim())
       .maybeSingle();
 
     if (existing) {
+      const spotsGained = (existing.referral_count || 0) * 5;
       return {
         success: true,
         position: existing.position,
         referralCode: existing.referral_code,
+        referralCount: existing.referral_count || 0,
+        spotsGained,
         error: "You're already on the waitlist!"
       };
     }
@@ -56,7 +61,9 @@ export async function signupToWaitlist(data: WaitlistSignup): Promise<WaitlistRe
     return {
       success: true,
       position: signup.position,
-      referralCode: signup.referral_code
+      referralCode: signup.referral_code,
+      referralCount: 0,
+      spotsGained: 0
     };
   } catch (err) {
     console.error('Waitlist signup exception:', err);

@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Check, Loader2, Share2, Twitter, Linkedin, Copy } from "lucide-react";
+import { ArrowRight, Check, Loader2, Share2, Twitter, Linkedin, Copy, Users, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -17,7 +17,19 @@ export const WaitlistForm = ({ variant = "hero" }: WaitlistFormProps) => {
   const [isSuccess, setIsSuccess] = useState(false);
   const [position, setPosition] = useState<number | null>(null);
   const [referralCode, setReferralCode] = useState<string | null>(null);
+  const [referralCount, setReferralCount] = useState<number>(0);
+  const [spotsGained, setSpotsGained] = useState<number>(0);
   const [error, setError] = useState("");
+  const [referredBy, setReferredBy] = useState<string | null>(null);
+
+  // Extract referral code from URL on mount
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const ref = urlParams.get("ref");
+    if (ref) {
+      setReferredBy(ref);
+    }
+  }, []);
 
   const validateEmail = (email: string) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -40,13 +52,18 @@ export const WaitlistForm = ({ variant = "hero" }: WaitlistFormProps) => {
 
     setIsLoading(true);
 
-    const result = await signupToWaitlist({ email });
+    const result = await signupToWaitlist({ 
+      email,
+      referredBy: referredBy || undefined
+    });
 
     setIsLoading(false);
 
     if (result.success) {
       setPosition(result.position || null);
       setReferralCode(result.referralCode || null);
+      setReferralCount(result.referralCount || 0);
+      setSpotsGained(result.spotsGained || 0);
       setIsSuccess(true);
 
       // Fire confetti celebration!
@@ -165,15 +182,39 @@ export const WaitlistForm = ({ variant = "hero" }: WaitlistFormProps) => {
           </motion.div>
 
           <h3 className="text-2xl font-bold mb-2">You're on the list! 🎉</h3>
-          <p className="text-muted-foreground mb-6">
+          <p className="text-muted-foreground mb-4">
             You're <span className="font-semibold text-foreground">#{position?.toLocaleString()}</span> in line
           </p>
 
+          {/* Referral Stats */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-muted/50 rounded-xl p-4 mb-6 border border-border"
+          >
+            <div className="flex items-center justify-center gap-6 text-sm">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-primary" />
+                <span className="text-muted-foreground">Referrals:</span>
+                <span className="font-semibold">{referralCount}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-primary" />
+                <span className="text-muted-foreground">Spots gained:</span>
+                <span className="font-semibold text-primary">{spotsGained}</span>
+              </div>
+            </div>
+            <p className="text-xs text-muted-foreground mt-2 text-center">
+              Each referral moves you up 5 spots!
+            </p>
+          </motion.div>
+
+          <p className="text-sm text-muted-foreground mb-4">
+            Share your link to skip the line:
+          </p>
+
           <div className="flex items-center justify-center gap-3">
-            <span className="text-sm text-muted-foreground flex items-center gap-1">
-              <Share2 className="w-4 h-4" />
-              Share:
-            </span>
             <Button
               variant="outline"
               size="icon"
