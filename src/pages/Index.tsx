@@ -1,13 +1,39 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { motion } from "framer-motion";
+import { WaitlistHero } from "@/components/waitlist/hero";
+import { FeatureShowcase } from "@/components/waitlist/feature-showcase";
+import { CapabilitiesGrid } from "@/components/waitlist/capabilities";
+import { HowItWorks } from "@/components/waitlist/how-it-works";
+import { SocialProof } from "@/components/waitlist/social-proof";
+import { WaitlistCTA } from "@/components/waitlist/cta";
+import { WaitlistFooter } from "@/components/waitlist/footer";
+
+const pageVariants = {
+  initial: { opacity: 0 },
+  animate: { 
+    opacity: 1,
+    transition: {
+      duration: 0.5,
+      ease: [0.4, 0, 0.2, 1],
+    }
+  },
+};
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
+    <motion.main
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
+      className="min-h-screen bg-background text-foreground overflow-x-hidden"
+    >
+      <WaitlistHero />
+      <FeatureShowcase />
+      <CapabilitiesGrid />
+      <HowItWorks />
+      <SocialProof />
+      <WaitlistCTA />
+      <WaitlistFooter />
+    </motion.main>
   );
 };
 
