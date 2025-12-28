@@ -3,6 +3,7 @@ import { Y0LogoMark } from "@/components/ui/y0-logo";
 import { AnimatedBackground } from "./animated-background";
 import { AnimatedCounter } from "./animated-counter";
 import { WaitlistForm } from "./waitlist-form";
+import { useWaitlistCount } from "@/hooks/use-waitlist-count";
 import { Users } from "lucide-react";
 
 const containerVariants = {
@@ -29,6 +30,9 @@ const itemVariants = {
 };
 
 export const WaitlistHero = () => {
+  // Base count of 2500 for launch + actual DB signups
+  const { count, isLoading } = useWaitlistCount(2500);
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       <AnimatedBackground />
@@ -90,7 +94,11 @@ export const WaitlistHero = () => {
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border">
             <Users className="w-4 h-4" />
             <span>
-              <AnimatedCounter target={2847} duration={2.5} className="font-semibold text-foreground" />
+              {isLoading ? (
+                <span className="font-semibold text-foreground">...</span>
+              ) : (
+                <AnimatedCounter target={count} duration={2.5} className="font-semibold text-foreground" />
+              )}
               {" "}people already waiting
             </span>
           </div>

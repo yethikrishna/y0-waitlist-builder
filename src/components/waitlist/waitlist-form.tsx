@@ -4,6 +4,7 @@ import { ArrowRight, Check, Loader2, Share2, Twitter, Linkedin, Copy } from "luc
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { signupToWaitlist } from "@/lib/waitlist";
 
 interface WaitlistFormProps {
   variant?: "hero" | "cta";
@@ -14,6 +15,7 @@ export const WaitlistForm = ({ variant = "hero" }: WaitlistFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [position, setPosition] = useState<number | null>(null);
+  const [referralCode, setReferralCode] = useState<string | null>(null);
   const [error, setError] = useState("");
 
   const validateEmail = (email: string) => {
@@ -37,23 +39,36 @@ export const WaitlistForm = ({ variant = "hero" }: WaitlistFormProps) => {
 
     setIsLoading(true);
 
-    // Simulate API call - replace with actual Supabase integration
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    const result = await signupToWaitlist({ email });
 
-    // Mock success
-    const mockPosition = Math.floor(Math.random() * 500) + 1000;
-    setPosition(mockPosition);
-    setIsSuccess(true);
     setIsLoading(false);
 
-    toast.success("You're on the list!", {
-      description: `You're #${mockPosition.toLocaleString()} in line`,
-    });
+    if (result.success) {
+      setPosition(result.position || null);
+      setReferralCode(result.referralCode || null);
+      setIsSuccess(true);
+
+      if (result.error) {
+        // Already on waitlist case
+        toast.info(result.error, {
+          description: `You're #${result.position?.toLocaleString()} in line`,
+        });
+      } else {
+        toast.success("You're on the list!", {
+          description: `You're #${result.position?.toLocaleString()} in line`,
+        });
+      }
+    } else {
+      setError(result.error || "Something went wrong");
+      toast.error(result.error || "Failed to join waitlist");
+    }
   };
 
   const handleShare = (platform: "twitter" | "linkedin" | "copy") => {
     const shareText = "Just joined the waitlist for y0 - The AI that actually gets things done. Join me! 🚀";
-    const shareUrl = window.location.href;
+    const shareUrl = referralCode 
+      ? `${window.location.origin}?ref=${referralCode}`
+      : window.location.href;
 
     switch (platform) {
       case "twitter":
