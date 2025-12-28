@@ -27,18 +27,36 @@ export interface ReferralStats {
   avgReferralsPerUser: number;
 }
 
-export async function getWaitlistSignups(): Promise<WaitlistSignupRow[]> {
-  const { data, error } = await supabase
-    .from('waitlist_signups')
-    .select('*')
-    .order('position', { ascending: true });
+export async function checkIsAdmin(): Promise<boolean> {
+  try {
+    const { data, error } = await supabase.functions.invoke('admin-check-role');
+    
+    if (error) {
+      console.error('Error checking admin status:', error);
+      return false;
+    }
+    
+    return data?.isAdmin === true;
+  } catch (err) {
+    console.error('Exception checking admin status:', err);
+    return false;
+  }
+}
 
-  if (error) {
-    console.error('Error fetching waitlist signups:', error);
+export async function getWaitlistSignups(): Promise<WaitlistSignupRow[]> {
+  try {
+    const { data, error } = await supabase.functions.invoke('admin-get-signups');
+    
+    if (error) {
+      console.error('Error fetching waitlist signups:', error);
+      return [];
+    }
+    
+    return data?.signups || [];
+  } catch (err) {
+    console.error('Exception fetching waitlist signups:', err);
     return [];
   }
-
-  return data || [];
 }
 
 export function exportToCSV(signups: WaitlistSignupRow[], filename: string = 'waitlist-signups.csv'): void {

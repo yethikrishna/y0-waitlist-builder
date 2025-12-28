@@ -2,8 +2,8 @@ import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { 
   Search, Download, Users, TrendingUp, Calendar, 
-  ArrowUpDown, ChevronLeft, ChevronRight, Lock, Eye, EyeOff,
-  Share2, Award, Percent, Trophy
+  ArrowUpDown, ChevronLeft, ChevronRight, Mail, Eye, EyeOff,
+  Share2, Award, Percent, Trophy, LogOut, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,18 +24,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { getWaitlistSignups, exportToCSV, calculateReferralStats, WaitlistSignupRow, ReferralStats } from "@/lib/admin";
+import { getWaitlistSignups, exportToCSV, calculateReferralStats, checkIsAdmin, WaitlistSignupRow, ReferralStats } from "@/lib/admin";
 import { Y0LogoMark } from "@/components/ui/y0-logo";
-
-const ADMIN_PASSWORD = "y0admin2024"; // Simple password protection
+import { supabase } from "@/integrations/supabase/client";
+import { User } from "@supabase/supabase-js";
 
 type SortField = "position" | "email" | "created_at";
 type SortOrder = "asc" | "desc";
 
 const Admin = () => {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [signups, setSignups] = useState<WaitlistSignupRow[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -46,18 +50,48 @@ const Admin = () => {
   const itemsPerPage = 20;
 
   useEffect(() => {
-    // Check if already authenticated in session
-    const auth = sessionStorage.getItem("y0_admin_auth");
-    if (auth === "true") {
-      setIsAuthenticated(true);
-    }
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+        
+        // Check admin role when user changes
+        if (session?.user) {
+          setTimeout(() => {
+            checkAdminStatus();
+          }, 0);
+        } else {
+          setIsAdmin(false);
+          setIsCheckingAuth(false);
+        }
+      }
+    );
+
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        checkAdminStatus();
+      } else {
+        setIsCheckingAuth(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
+  const checkAdminStatus = async () => {
+    setIsCheckingAuth(true);
+    const adminStatus = await checkIsAdmin();
+    setIsAdmin(adminStatus);
+    setIsCheckingAuth(false);
+  };
+
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAdmin) {
       fetchSignups();
     }
-  }, [isAuthenticated]);
+  }, [isAdmin]);
 
   const fetchSignups = async () => {
     setIsLoading(true);
@@ -66,15 +100,31 @@ const Admin = () => {
     setIsLoading(false);
   };
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === ADMIN_PASSWORD) {
-      setIsAuthenticated(true);
-      sessionStorage.setItem("y0_admin_auth", "true");
-      toast.success("Welcome to the admin dashboard");
-    } else {
-      toast.error("Invalid password");
+    setIsLoggingIn(true);
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password
+      });
+
+      if (error) {
+        toast.error(error.message);
+      }
+    } catch (err) {
+      toast.error("Failed to sign in");
+    } finally {
+      setIsLoggingIn(false);
     }
+  };
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setIsAdmin(false);
+    setSignups([]);
+    toast.success("Logged out successfully");
   };
 
   // Filter and sort signups
@@ -194,8 +244,20 @@ const Admin = () => {
   // Referral analytics
   const referralStats = useMemo(() => calculateReferralStats(signups), [signups]);
 
-  // Login screen
-  if (!isAuthenticated) {
+  // Loading state
+  if (isCheckingAuth) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-muted-foreground">Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Login screen - user not logged in
+  if (!user) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center p-6">
         <motion.div
@@ -208,19 +270,30 @@ const Admin = () => {
               <Y0LogoMark size={48} className="mx-auto mb-4 text-primary" />
               <h1 className="text-2xl font-bold">Admin Dashboard</h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Enter password to access
+                Sign in with your admin account
               </p>
             </div>
 
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                <Input
+                  type="email"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="pl-10"
+                  required
+                />
+              </div>
+              <div className="relative">
                 <Input
                   type={showPassword ? "text" : "password"}
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="pl-10 pr-10"
+                  className="pr-10"
+                  required
                 />
                 <button
                   type="button"
@@ -230,10 +303,42 @@ const Admin = () => {
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
-              <Button type="submit" className="w-full">
-                Access Dashboard
+              <Button type="submit" className="w-full" disabled={isLoggingIn}>
+                {isLoggingIn ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  "Sign In"
+                )}
               </Button>
             </form>
+          </Card>
+        </motion.div>
+      </div>
+    );
+  }
+
+  // Access denied - user logged in but not admin
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full max-w-sm"
+        >
+          <Card className="p-8 text-center">
+            <Y0LogoMark size={48} className="mx-auto mb-4 text-destructive" />
+            <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
+            <p className="text-sm text-muted-foreground mb-6">
+              You don't have admin permissions. Please contact an administrator.
+            </p>
+            <Button variant="outline" onClick={handleLogout} className="gap-2">
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </Button>
           </Card>
         </motion.div>
       </div>
@@ -249,13 +354,19 @@ const Admin = () => {
             <Y0LogoMark size={32} className="text-primary" />
             <div>
               <h1 className="text-xl font-bold">Waitlist Admin</h1>
-              <p className="text-sm text-muted-foreground">Manage your signups</p>
+              <p className="text-sm text-muted-foreground">{user.email}</p>
             </div>
           </div>
-          <Button variant="outline" onClick={handleExport} className="gap-2">
-            <Download className="w-4 h-4" />
-            Export CSV
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={handleExport} className="gap-2">
+              <Download className="w-4 h-4" />
+              Export CSV
+            </Button>
+            <Button variant="ghost" onClick={handleLogout} className="gap-2">
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </Button>
+          </div>
         </div>
       </header>
 
@@ -461,8 +572,11 @@ const Admin = () => {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                      Loading...
+                    <TableCell colSpan={6} className="text-center py-8">
+                      <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Loading...
+                      </div>
                     </TableCell>
                   </TableRow>
                 ) : paginatedSignups.length === 0 ? (
@@ -480,37 +594,30 @@ const Admin = () => {
                       <TableCell>{signup.email}</TableCell>
                       <TableCell>
                         <code className="text-xs bg-muted px-2 py-1 rounded">
-                          {signup.referral_code || "-"}
+                          {signup.referral_code || '-'}
                         </code>
                       </TableCell>
                       <TableCell>
                         {signup.referred_by ? (
-                          <code className="text-xs bg-muted px-2 py-1 rounded">
+                          <code className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
                             {signup.referred_by}
                           </code>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
+                        ) : '-'}
                       </TableCell>
                       <TableCell className="text-center">
-                        {(signup.referral_count || 0) > 0 ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium">
-                            {signup.referral_count}
-                          </span>
-                        ) : (
-                          <span className="text-muted-foreground">0</span>
-                        )}
+                        <span className={`font-medium ${(signup.referral_count || 0) > 0 ? 'text-primary' : 'text-muted-foreground'}`}>
+                          {signup.referral_count || 0}
+                        </span>
                       </TableCell>
                       <TableCell className="text-muted-foreground">
-                        {signup.created_at
-                          ? new Date(signup.created_at).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
+                        {signup.created_at 
+                          ? new Date(signup.created_at).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              hour: '2-digit',
+                              minute: '2-digit'
                             })
-                          : "-"}
+                          : '-'}
                       </TableCell>
                     </TableRow>
                   ))
@@ -521,27 +628,25 @@ const Admin = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t border-border">
+            <div className="border-t border-border px-4 py-3 flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                Showing {((currentPage - 1) * itemsPerPage) + 1} to{" "}
-                {Math.min(currentPage * itemsPerPage, filteredSignups.length)} of{" "}
-                {filteredSignups.length} signups
+                Showing {((currentPage - 1) * itemsPerPage) + 1} to {Math.min(currentPage * itemsPerPage, filteredSignups.length)} of {filteredSignups.length}
               </p>
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
-                  size="icon"
+                  size="sm"
                   onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                   disabled={currentPage === 1}
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </Button>
-                <span className="text-sm">
-                  Page {currentPage} of {totalPages}
+                <span className="text-sm px-2">
+                  {currentPage} / {totalPages}
                 </span>
                 <Button
                   variant="outline"
-                  size="icon"
+                  size="sm"
                   onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                   disabled={currentPage === totalPages}
                 >

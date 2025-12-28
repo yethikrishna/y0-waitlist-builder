@@ -18,20 +18,26 @@ export interface WaitlistResult {
 
 export async function signupToWaitlist(data: WaitlistSignup): Promise<WaitlistResult> {
   try {
-    // Check if email already exists
-    const { data: existing } = await supabase
-      .from('waitlist_signups')
-      .select('id, position, referral_code, referral_count')
-      .eq('email', data.email.toLowerCase().trim())
-      .maybeSingle();
+    // Check if email already exists using edge function (secure)
+    const { data: checkResult, error: checkError } = await supabase.functions.invoke('check-email-exists', {
+      body: { email: data.email.toLowerCase().trim() }
+    });
 
-    if (existing) {
-      const spotsGained = (existing.referral_count || 0) * 5;
+    if (checkError) {
+      console.error('Error checking email:', checkError);
+      return {
+        success: false,
+        error: 'Failed to check email. Please try again.'
+      };
+    }
+
+    if (checkResult.exists) {
+      const spotsGained = (checkResult.referralCount || 0) * 5;
       return {
         success: true,
-        position: existing.position,
-        referralCode: existing.referral_code,
-        referralCount: existing.referral_count || 0,
+        position: checkResult.position,
+        referralCode: checkResult.referralCode,
+        referralCount: checkResult.referralCount || 0,
         spotsGained,
         error: "You're already on the waitlist!"
       };
@@ -86,16 +92,15 @@ export async function signupToWaitlist(data: WaitlistSignup): Promise<WaitlistRe
 
 export async function getWaitlistCount(): Promise<number> {
   try {
-    const { count, error } = await supabase
-      .from('waitlist_signups')
-      .select('*', { count: 'exact', head: true });
+    // Use the secure RPC function
+    const { data, error } = await supabase.rpc('get_waitlist_count');
 
     if (error) {
       console.error('Error fetching waitlist count:', error);
       return 0;
     }
 
-    return count || 0;
+    return data || 0;
   } catch (err) {
     console.error('Exception fetching waitlist count:', err);
     return 0;
