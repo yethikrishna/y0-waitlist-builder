@@ -1,12 +1,16 @@
 import { motion } from "framer-motion";
 import { ConstellationConnect } from "./animations/constellation-connect";
 import { LiquidMorphBlob } from "./animations/liquid-morph-blob";
+import { TypingDNAHelix } from "./animations/typing-dna-helix";
 
 export const AnimatedBackground = () => {
   return (
     <div className="absolute inset-0 overflow-hidden pointer-events-none">
       {/* Liquid morph blob - organic flowing background */}
       <LiquidMorphBlob />
+
+      {/* DNA Helix animation */}
+      <TypingDNAHelix />
 
       {/* Constellation connecting nodes */}
       <ConstellationConnect />

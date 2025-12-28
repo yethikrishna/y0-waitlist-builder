@@ -5,10 +5,10 @@ import { motion } from 'framer-motion';
 const CHARS = 'ATCG01▪▫●○'.split('');
 
 export function TypingDNAHelix() {
-  const strands = 20;
+  const strands = 15;
 
   return (
-    <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden">
+    <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden opacity-40">
       {Array.from({ length: strands }).map((_, i) => {
         const yOffset = (i / strands) * 100 - 50;
         const phase = i * 0.5;
@@ -30,7 +30,7 @@ export function TypingDNAHelix() {
           >
             {/* Left strand */}
             <motion.span
-              className="text-primary/30 font-mono text-xs"
+              className="text-primary/20 font-mono text-[10px]"
               animate={{
                 y: [Math.sin(phase) * 20, Math.sin(phase + Math.PI) * 20, Math.sin(phase) * 20],
               }}
@@ -48,7 +48,7 @@ export function TypingDNAHelix() {
 
             {/* Right strand */}
             <motion.span
-              className="text-primary/30 font-mono text-xs"
+              className="text-primary/20 font-mono text-[10px]"
               animate={{
                 y: [Math.sin(phase + Math.PI) * 20, Math.sin(phase) * 20, Math.sin(phase + Math.PI) * 20],
               }}
