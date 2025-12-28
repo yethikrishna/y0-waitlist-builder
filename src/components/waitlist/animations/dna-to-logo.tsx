@@ -1,209 +1,342 @@
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
 
-// Dense strand configuration - Netflix style
-const STRAND_COUNT = 80;
+// Netflix-style vibrant colors
+const COLORS = [
+  '#E50914', // Netflix Red
+  '#FF6B6B', // Coral
+  '#C850C0', // Purple
+  '#4158D0', // Blue
+  '#0093E9', // Light Blue
+  '#00C9A7', // Teal
+  '#FFD93D', // Yellow
+  '#FF6B35', // Orange
+];
+
+// Dense strand count for realistic DNA
+const STRAND_POINTS = 100;
 
 export function DNAToLogoAnimation() {
-  const [phase, setPhase] = useState<'helix' | 'morphing' | 'logo'>('helix');
-
+  const [phase, setPhase] = useState<'dna' | 'morphing' | 'logo'>('dna');
+  
   useEffect(() => {
     const sequence = async () => {
-      setPhase('helix');
-      await new Promise(resolve => setTimeout(resolve, 2500));
+      setPhase('dna');
+      await new Promise(r => setTimeout(r, 3000));
       setPhase('morphing');
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(r => setTimeout(r, 1500));
       setPhase('logo');
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      await new Promise(r => setTimeout(r, 2500));
     };
-
+    
     sequence();
-    const interval = setInterval(sequence, 7500);
+    const interval = setInterval(sequence, 7000);
     return () => clearInterval(interval);
   }, []);
 
-  // Color palette - vibrant like Netflix
-  const colors = [
-    '#FF0080', // Pink
-    '#7928CA', // Purple
-    '#0070F3', // Blue
-    '#00DFD8', // Cyan
-    '#FF4D4D', // Red
-    '#F5A623', // Orange
-    '#50E3C2', // Teal
-    '#B620E0', // Magenta
-  ];
+  const width = 280;
+  const height = 160;
+  const centerX = width / 2;
+  const isLogo = phase === 'logo';
+  const isMorphing = phase === 'morphing';
+
+  // Generate DNA double helix points
+  const generateHelixPoints = () => {
+    const strand1: Array<{x: number, y: number, color: string}> = [];
+    const strand2: Array<{x: number, y: number, color: string}> = [];
+    const basePairs: Array<{x1: number, x2: number, y: number, color: string}> = [];
+    
+    const amplitude = 40;
+    const turns = 2.5;
+    
+    for (let i = 0; i < STRAND_POINTS; i++) {
+      const t = i / STRAND_POINTS;
+      const angle = t * Math.PI * 2 * turns;
+      const y = t * height * 0.9 + height * 0.05;
+      
+      strand1.push({
+        x: centerX + Math.sin(angle) * amplitude,
+        y,
+        color: COLORS[i % COLORS.length],
+      });
+      
+      strand2.push({
+        x: centerX + Math.sin(angle + Math.PI) * amplitude,
+        y,
+        color: COLORS[(i + 4) % COLORS.length],
+      });
+      
+      // Base pairs every few points
+      if (i % 4 === 0) {
+        basePairs.push({
+          x1: centerX + Math.sin(angle) * amplitude,
+          x2: centerX + Math.sin(angle + Math.PI) * amplitude,
+          y,
+          color: COLORS[i % COLORS.length],
+        });
+      }
+    }
+    
+    return { strand1, strand2, basePairs };
+  };
+
+  // Generate y0 logo target positions
+  const generateLogoPoints = () => {
+    const points: Array<{x: number, y: number, color: string, type: 'y' | '0'}> = [];
+    
+    // "y" letter - left diagonal, right diagonal, stem
+    const yLeft = 85;
+    const yRight = 135;
+    const yCenter = 110;
+    const yTop = 25;
+    const yMiddle = 80;
+    const yBottom = 140;
+    
+    // Left arm of Y (top-left to center)
+    for (let i = 0; i < 25; i++) {
+      const t = i / 24;
+      points.push({
+        x: yLeft + (yCenter - yLeft) * t,
+        y: yTop + (yMiddle - yTop) * t,
+        color: COLORS[i % COLORS.length],
+        type: 'y',
+      });
+    }
+    
+    // Right arm of Y (top-right to center)
+    for (let i = 0; i < 25; i++) {
+      const t = i / 24;
+      points.push({
+        x: yRight - (yRight - yCenter) * t,
+        y: yTop + (yMiddle - yTop) * t,
+        color: COLORS[(i + 2) % COLORS.length],
+        type: 'y',
+      });
+    }
+    
+    // Stem of Y
+    for (let i = 0; i < 20; i++) {
+      const t = i / 19;
+      points.push({
+        x: yCenter,
+        y: yMiddle + (yBottom - yMiddle) * t,
+        color: COLORS[(i + 4) % COLORS.length],
+        type: 'y',
+      });
+    }
+    
+    // "0" letter - ellipse
+    const zeroX = 190;
+    const zeroY = height / 2;
+    const radiusX = 28;
+    const radiusY = 55;
+    
+    for (let i = 0; i < 30; i++) {
+      const angle = (i / 30) * Math.PI * 2;
+      points.push({
+        x: zeroX + Math.cos(angle) * radiusX,
+        y: zeroY + Math.sin(angle) * radiusY,
+        color: COLORS[(i + 1) % COLORS.length],
+        type: '0',
+      });
+    }
+    
+    return points;
+  };
+
+  const { strand1, strand2, basePairs } = generateHelixPoints();
+  const logoPoints = generateLogoPoints();
 
   return (
-    <div className="relative w-full h-64 overflow-hidden bg-gradient-to-b from-background via-background to-muted/30">
-      <svg 
-        viewBox="0 0 200 100" 
-        className="w-full h-full"
-        preserveAspectRatio="xMidYMid meet"
-      >
-        <defs>
-          {/* Multiple color gradients */}
-          {colors.map((color, i) => (
-            <linearGradient key={i} id={`grad-${i}`} x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor={color} stopOpacity="0.9" />
-              <stop offset="100%" stopColor={colors[(i + 1) % colors.length]} stopOpacity="0.9" />
-            </linearGradient>
-          ))}
-          
-          {/* Glow filter */}
-          <filter id="glow">
-            <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
-            <feMerge>
-              <feMergeNode in="coloredBlur"/>
-              <feMergeNode in="SourceGraphic"/>
-            </feMerge>
-          </filter>
-        </defs>
+    <div className="relative w-full flex justify-center py-6 bg-gradient-to-b from-background to-muted/30">
+      <div className="relative" style={{ width, height }}>
+        <svg 
+          viewBox={`0 0 ${width} ${height}`}
+          className="w-full h-full"
+        >
+          <defs>
+            <filter id="glow" x="-100%" y="-100%" width="300%" height="300%">
+              <feGaussianBlur stdDeviation="2" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
 
-        {/* Dense DNA Strands */}
-        {Array.from({ length: STRAND_COUNT }).map((_, i) => {
-          const progress = i / STRAND_COUNT;
-          const helixT = progress * Math.PI * 8;
-          
-          // Helix positions - two interweaving strands
-          const amplitude = 35;
-          const helixX1 = 100 + Math.sin(helixT) * amplitude;
-          const helixX2 = 100 + Math.sin(helixT + Math.PI) * amplitude;
-          const helixY = progress * 90 + 5;
-
-          // Target positions for "y0" logo
-          const isYPart = progress < 0.55;
-          
-          let targetX1: number, targetX2: number, targetY: number;
-          
-          if (isYPart) {
-            const yProgress = progress / 0.55;
-            if (yProgress < 0.35) {
-              // Left arm of y - diagonal down
-              const t = yProgress / 0.35;
-              targetX1 = 55 + t * 25;
-              targetX2 = 60 + t * 20;
-              targetY = 20 + t * 35;
-            } else if (yProgress < 0.45) {
-              // Right arm of y - diagonal down  
-              const t = (yProgress - 0.35) / 0.1;
-              targetX1 = 95 - t * 15;
-              targetX2 = 90 - t * 10;
-              targetY = 20 + t * 35;
-            } else if (yProgress < 0.55) {
-              // Center junction
-              targetX1 = 78;
-              targetX2 = 82;
-              targetY = 55;
-            } else {
-              // Stem going down
-              const t = (yProgress - 0.55) / 0.45;
-              targetX1 = 78;
-              targetX2 = 82;
-              targetY = 55 + t * 30;
-            }
-          } else {
-            // Form the '0' - oval shape
-            const zeroProgress = (progress - 0.55) / 0.45;
-            const angle = zeroProgress * Math.PI * 2 - Math.PI / 2;
-            const centerX = 140;
-            const centerY = 50;
-            const radiusX = 22;
-            const radiusY = 32;
-            targetX1 = centerX + Math.cos(angle) * (radiusX - 3);
-            targetX2 = centerX + Math.cos(angle) * (radiusX + 3);
-            targetY = centerY + Math.sin(angle) * radiusY;
-          }
-
-          const isLogo = phase === 'logo';
-          const isMorphing = phase === 'morphing';
-          const colorIndex = i % colors.length;
-
-          return (
-            <motion.line
-              key={i}
-              stroke={`url(#grad-${colorIndex})`}
-              strokeWidth={isLogo ? 3 : 2}
-              strokeLinecap="round"
-              filter={isLogo ? "url(#glow)" : undefined}
-              initial={{
-                x1: helixX1,
-                y1: helixY,
-                x2: helixX2,
-                y2: helixY,
-                opacity: 0.7,
-              }}
-              animate={{
-                x1: isLogo || isMorphing ? targetX1 : helixX1,
-                y1: isLogo || isMorphing ? targetY : helixY,
-                x2: isLogo || isMorphing ? targetX2 : helixX2,
-                y2: isLogo || isMorphing ? targetY : helixY,
-                opacity: isLogo ? 1 : 0.8,
-              }}
-              transition={{
-                duration: isMorphing ? 1.8 : 0.3,
-                delay: isMorphing ? i * 0.015 : 0,
-                ease: [0.4, 0, 0.2, 1],
-              }}
-            />
-          );
-        })}
-
-        {/* Animated wave effect during helix phase */}
-        {phase === 'helix' && (
-          <motion.g
-            animate={{ opacity: [0.3, 0.6, 0.3] }}
-            transition={{ duration: 2, repeat: Infinity }}
-          >
-            {Array.from({ length: 20 }).map((_, i) => {
-              const y = (i / 20) * 90 + 5;
-              const t = (i / 20) * Math.PI * 8;
-              return (
-                <motion.line
-                  key={`wave-${i}`}
-                  x1={100 + Math.sin(t) * 35}
-                  y1={y}
-                  x2={100 + Math.sin(t + Math.PI) * 35}
-                  y2={y}
-                  stroke={colors[i % colors.length]}
-                  strokeWidth={0.5}
-                  strokeOpacity={0.4}
-                  animate={{
-                    x1: [100 + Math.sin(t) * 35, 100 + Math.sin(t + 0.5) * 35],
-                    x2: [100 + Math.sin(t + Math.PI) * 35, 100 + Math.sin(t + Math.PI + 0.5) * 35],
-                  }}
-                  transition={{
-                    duration: 1,
-                    repeat: Infinity,
-                    repeatType: "reverse",
-                    delay: i * 0.05,
-                  }}
+          <AnimatePresence mode="wait">
+            {!isLogo ? (
+              // DNA Double Helix
+              <motion.g
+                key="dna"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+              >
+                {/* Base pairs / rungs */}
+                {basePairs.map((pair, i) => (
+                  <motion.line
+                    key={`pair-${i}`}
+                    x1={pair.x1}
+                    y1={pair.y}
+                    x2={pair.x2}
+                    y2={pair.y}
+                    stroke={pair.color}
+                    strokeWidth={1.5}
+                    strokeOpacity={0.5}
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: [0, 1, 0] }}
+                    transition={{
+                      duration: 2,
+                      delay: i * 0.1,
+                      repeat: Infinity,
+                    }}
+                  />
+                ))}
+                
+                {/* Strand 1 - dots forming the helix */}
+                {strand1.map((point, i) => (
+                  <motion.circle
+                    key={`s1-${i}`}
+                    cx={point.x}
+                    cy={point.y}
+                    r={2.5}
+                    fill={point.color}
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ 
+                      opacity: 0.9, 
+                      scale: 1,
+                      cx: isMorphing && logoPoints[i] ? logoPoints[i].x : point.x,
+                      cy: isMorphing && logoPoints[i] ? logoPoints[i].y : point.y,
+                    }}
+                    transition={{
+                      opacity: { duration: 0.3, delay: i * 0.01 },
+                      scale: { duration: 0.3, delay: i * 0.01 },
+                      cx: { duration: 1.2, ease: [0.4, 0, 0.2, 1] },
+                      cy: { duration: 1.2, ease: [0.4, 0, 0.2, 1] },
+                    }}
+                  />
+                ))}
+                
+                {/* Strand 2 */}
+                {strand2.map((point, i) => (
+                  <motion.circle
+                    key={`s2-${i}`}
+                    cx={point.x}
+                    cy={point.y}
+                    r={2.5}
+                    fill={point.color}
+                    initial={{ opacity: 0, scale: 0 }}
+                    animate={{ 
+                      opacity: 0.9, 
+                      scale: 1,
+                    }}
+                    transition={{
+                      duration: 0.3, 
+                      delay: i * 0.01 + 0.3,
+                    }}
+                  />
+                ))}
+              </motion.g>
+            ) : (
+              // Y0 Logo formed from particles
+              <motion.g
+                key="logo"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.5 }}
+                filter="url(#glow)"
+              >
+                {logoPoints.map((point, i) => (
+                  <motion.circle
+                    key={`logo-${i}`}
+                    r={3.5}
+                    fill={point.color}
+                    initial={{ 
+                      cx: strand1[i % strand1.length]?.x || centerX,
+                      cy: strand1[i % strand1.length]?.y || height / 2,
+                      opacity: 0,
+                    }}
+                    animate={{ 
+                      cx: point.x,
+                      cy: point.y,
+                      opacity: 1,
+                    }}
+                    transition={{
+                      duration: 0.8,
+                      delay: i * 0.015,
+                      ease: [0.4, 0, 0.2, 1],
+                    }}
+                  />
+                ))}
+                
+                {/* Connecting lines for Y */}
+                <motion.path
+                  d="M 85 25 L 110 80 L 110 140"
+                  fill="none"
+                  stroke="url(#yGradient)"
+                  strokeWidth={6}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 0.8 }}
+                  transition={{ duration: 1, delay: 0.5 }}
                 />
-              );
-            })}
-          </motion.g>
-        )}
-      </svg>
+                <motion.path
+                  d="M 135 25 L 110 80"
+                  fill="none"
+                  stroke="url(#yGradient)"
+                  strokeWidth={6}
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 0.8 }}
+                  transition={{ duration: 0.6, delay: 0.8 }}
+                />
+                
+                {/* 0 ellipse */}
+                <motion.ellipse
+                  cx={190}
+                  cy={height / 2}
+                  rx={28}
+                  ry={55}
+                  fill="none"
+                  stroke="url(#zeroGradient)"
+                  strokeWidth={6}
+                  strokeLinecap="round"
+                  initial={{ pathLength: 0, opacity: 0 }}
+                  animate={{ pathLength: 1, opacity: 0.8 }}
+                  transition={{ duration: 1.2, delay: 0.6 }}
+                />
+                
+                <defs>
+                  <linearGradient id="yGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                    <stop offset="0%" stopColor="#E50914" />
+                    <stop offset="50%" stopColor="#C850C0" />
+                    <stop offset="100%" stopColor="#4158D0" />
+                  </linearGradient>
+                  <linearGradient id="zeroGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stopColor="#0093E9" />
+                    <stop offset="50%" stopColor="#00C9A7" />
+                    <stop offset="100%" stopColor="#FFD93D" />
+                  </linearGradient>
+                </defs>
+              </motion.g>
+            )}
+          </AnimatePresence>
+        </svg>
 
-      {/* Text label */}
-      <motion.p
-        className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs text-muted-foreground"
-        animate={{ opacity: phase === 'logo' ? 1 : 0.5 }}
-      >
-        {phase === 'logo' ? 'y0' : 'Evolving...'}
-      </motion.p>
-
-      {/* Glow overlay when logo forms */}
-      <motion.div
-        className="absolute inset-0 pointer-events-none"
-        animate={{
-          opacity: phase === 'logo' ? 0.4 : 0,
-        }}
-        transition={{ duration: 0.8 }}
-        style={{
-          background: 'radial-gradient(ellipse at center, rgba(121, 40, 202, 0.3) 0%, transparent 60%)',
-        }}
-      />
+        {/* Glow effect */}
+        <motion.div
+          className="absolute inset-0 pointer-events-none"
+          animate={{ opacity: isLogo ? 0.6 : 0 }}
+          transition={{ duration: 0.8 }}
+          style={{
+            background: 'radial-gradient(ellipse at center, rgba(229, 9, 20, 0.25) 0%, rgba(200, 80, 192, 0.15) 40%, transparent 70%)',
+          }}
+        />
+      </div>
     </div>
   );
 }
