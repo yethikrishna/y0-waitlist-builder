@@ -58,6 +58,16 @@ export async function signupToWaitlist(data: WaitlistSignup): Promise<WaitlistRe
       };
     }
 
+    // Send admin notification (fire and forget)
+    supabase.functions.invoke('notify-admin-signup', {
+      body: {
+        email: data.email.toLowerCase().trim(),
+        position: signup.position,
+        referredBy: data.referredBy || null,
+        totalSignups: signup.position
+      }
+    }).catch(err => console.error('Failed to send admin notification:', err));
+
     return {
       success: true,
       position: signup.position,
