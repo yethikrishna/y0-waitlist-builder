@@ -11,9 +11,9 @@ const testimonials = [
   },
   {
     quote: "This is a game changer and a very big thing. I want early access!",
-    author: "Faheem Qazi",
-    role: "IT & Computer Science Educator",
-    company: "25+ Years Experience",
+    author: "Idrees Qazi",
+    role: "Web Dev & Student",
+    company: "",
   },
   {
     quote: "We're crafting an extraordinary UX layer on top of cutting-edge AI infrastructure—streaming, file versioning, tool orchestration. The vision? Collect enough agent execution data to build something truly proprietary and revolutionary.",
