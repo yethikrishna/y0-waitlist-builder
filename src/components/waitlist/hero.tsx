@@ -5,6 +5,7 @@ import { AnimatedCounter } from "./animated-counter";
 import { WaitlistForm } from "./waitlist-form";
 import { useWaitlistCount } from "@/hooks/use-waitlist-count";
 import { Users } from "lucide-react";
+import { CompyleBadge } from "@/components/compyle/CompyleBadge";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -89,19 +90,22 @@ export const WaitlistHero = () => {
 
         <motion.div
           variants={itemVariants}
-          className="flex items-center justify-center gap-2 text-sm text-muted-foreground"
+          className="flex flex-col items-center gap-4"
         >
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border">
-            <Users className="w-4 h-4" />
-            <span>
-              {isLoading ? (
-                <span className="font-semibold text-foreground">...</span>
-              ) : (
-                <AnimatedCounter target={count} duration={2.5} className="font-semibold text-foreground" />
-              )}
-              {" "}people already waiting
-            </span>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-card border border-border">
+              <Users className="w-4 h-4" />
+              <span>
+                {isLoading ? (
+                  <span className="font-semibold text-foreground">...</span>
+                ) : (
+                  <AnimatedCounter target={count} duration={2.5} className="font-semibold text-foreground" />
+                )}
+                {" "}people already waiting
+              </span>
+            </div>
           </div>
+          <CompyleBadge />
         </motion.div>
       </motion.div>
 
