@@ -4,8 +4,8 @@ import { Quote } from "lucide-react";
 
 const testimonials = [
   {
-    quote: "We're building the best coding agent in the world. y0 represents the future of how humans and AI will collaborate on complex software projects.",
-    author: "Mark",
+    quote: "Nice, it's like ChatGPT that can save files for me! It looks very nice.",
+    author: "Mark Nazzaro",
     role: "CTO",
     company: "Compyle (YC F25)",
   },
@@ -18,14 +18,15 @@ const testimonials = [
   {
     quote: "We're crafting an extraordinary UX layer on top of cutting-edge AI infrastructure—streaming, file versioning, tool orchestration. The vision? Collect enough agent execution data to build something truly proprietary and revolutionary.",
     author: "Yethikrishna R",
-    role: "Coordinator & Contributor",
-    company: "Compyle",
+    role: "Founder & Developer of y0",
+    company: "Coordinator at Compyle",
   },
 ];
 
+// Shuffled company order
 const companies = [
-  "Compyle", "Anthropic", "Zhipu AI", "ByteDance", "Codebuff", 
-  "Doubao Seed", "Google DeepMind", "Flames AI", "OpenAI", "Meta AI"
+  "Anthropic", "Compyle", "Google DeepMind", "ByteDance", "Zhipu AI",
+  "Flames AI", "Codebuff", "OpenAI", "Doubao Seed", "Meta AI"
 ];
 
 export const SocialProof = () => {
