@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { Y0LogoMark } from '@/components/ui/y0-logo';
+import compyleLogo from '@/assets/compyle-logo.svg';
 
 function BackArrowIcon({ className }: { className?: string }) {
   return (
@@ -81,7 +82,7 @@ export default function Compyle() {
         <motion.div variants={itemVariants} className="text-center mb-16">
           <div className="inline-flex items-center justify-center p-8 rounded-2xl border border-border bg-card mb-8">
             <img 
-              src="https://www.compyle.ai/compyle.svg" 
+              src={compyleLogo} 
               alt="Compyle" 
               className="h-12 w-auto"
             />

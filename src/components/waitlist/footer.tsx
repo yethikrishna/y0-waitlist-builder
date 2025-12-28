@@ -3,6 +3,7 @@ import { Y0LogoMark } from "@/components/ui/y0-logo";
 import { Twitter, Github, MessageCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link } from "react-router-dom";
+import compyleLogo from '@/assets/compyle-logo.svg';
 
 const socialLinks = [
   { icon: Twitter, label: "Twitter", href: "#" },
@@ -37,7 +38,7 @@ export const WaitlistFooter = () => {
               className="opacity-60 hover:opacity-100 transition-opacity"
             >
               <img 
-                src="https://www.compyle.ai/compyle.svg" 
+                src={compyleLogo} 
                 alt="Compyle" 
                 className="h-5 w-auto"
               />
@@ -46,18 +47,18 @@ export const WaitlistFooter = () => {
 
           {/* Links */}
           <div className="flex items-center gap-8">
-            <a 
-              href="#" 
+            <Link 
+              to="/terms" 
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Terms
-            </a>
-            <a 
-              href="#" 
+            </Link>
+            <Link 
+              to="/privacy" 
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               Privacy
-            </a>
+            </Link>
           </div>
 
           {/* Social Links */}
