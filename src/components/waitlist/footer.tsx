@@ -4,6 +4,7 @@ import { Twitter, Github, MessageCircle } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Link } from "react-router-dom";
 import compyleLogo from '@/assets/compyle-logo.svg';
+import { DNAToLogoAnimation } from "./animations/dna-to-logo";
 
 const socialLinks = [
   { icon: Twitter, label: "Twitter", href: "#" },
@@ -13,75 +14,85 @@ const socialLinks = [
 
 export const WaitlistFooter = () => {
   return (
-    <footer className="py-12 px-6 border-t border-border">
-      <div className="container mx-auto max-w-6xl">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          {/* Logo & Copyright */}
-          <div className="flex items-center gap-4">
-            <motion.div
-              whileHover={{ scale: 1.05 }}
-              transition={{ type: "spring", stiffness: 380, damping: 30 }}
-              className="text-primary"
-            >
-              <Y0LogoMark size={28} />
-            </motion.div>
-            <span className="text-sm text-muted-foreground">
-              © {new Date().getFullYear()} y0. All rights reserved.
-            </span>
-          </div>
+    <footer className="border-t border-border">
+      {/* DNA to y0 Logo Animation */}
+      <div className="py-8 bg-gradient-to-b from-background to-muted/20">
+        <div className="container mx-auto max-w-2xl">
+          <DNAToLogoAnimation />
+        </div>
+      </div>
 
-          {/* Powered by Compyle */}
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-muted-foreground">Powered by</span>
-            <Link 
-              to="/compyle"
-              className="opacity-60 hover:opacity-100 transition-opacity"
-            >
-              <img 
-                src={compyleLogo} 
-                alt="Compyle" 
-                className="h-5 w-auto"
-              />
-            </Link>
-          </div>
+      {/* Footer Content */}
+      <div className="py-8 px-6 border-t border-border/50">
+        <div className="container mx-auto max-w-6xl">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+            {/* Logo & Copyright */}
+            <div className="flex items-center gap-4">
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                className="text-primary"
+              >
+                <Y0LogoMark size={28} />
+              </motion.div>
+              <span className="text-sm text-muted-foreground">
+                © {new Date().getFullYear()} y0. All rights reserved.
+              </span>
+            </div>
 
-          {/* Links */}
-          <div className="flex items-center gap-8">
-            <Link 
-              to="/terms" 
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Terms
-            </Link>
-            <Link 
-              to="/privacy" 
-              className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Privacy
-            </Link>
-          </div>
+            {/* Powered by Compyle */}
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground">Powered by</span>
+              <Link 
+                to="/compyle"
+                className="opacity-60 hover:opacity-100 transition-opacity"
+              >
+                <img 
+                  src={compyleLogo} 
+                  alt="Compyle" 
+                  className="h-5 w-auto"
+                />
+              </Link>
+            </div>
 
-          {/* Social Links */}
-          <div className="flex items-center gap-2">
-            {socialLinks.map((social) => {
-              const Icon = social.icon;
-              return (
-                <Tooltip key={social.label}>
-                  <TooltipTrigger asChild>
-                    <motion.button
-                      whileHover={{ scale: 1.1 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="p-2 rounded-lg border border-border hover:bg-accent transition-colors"
-                    >
-                      <Icon className="w-4 h-4 text-muted-foreground" />
-                    </motion.button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Coming Soon</p>
-                  </TooltipContent>
-                </Tooltip>
-              );
-            })}
+            {/* Links */}
+            <div className="flex items-center gap-8">
+              <Link 
+                to="/terms" 
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Terms
+              </Link>
+              <Link 
+                to="/privacy" 
+                className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                Privacy
+              </Link>
+            </div>
+
+            {/* Social Links */}
+            <div className="flex items-center gap-2">
+              {socialLinks.map((social) => {
+                const Icon = social.icon;
+                return (
+                  <Tooltip key={social.label}>
+                    <TooltipTrigger asChild>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="p-2 rounded-lg border border-border hover:bg-accent transition-colors"
+                      >
+                        <Icon className="w-4 h-4 text-muted-foreground" />
+                      </motion.button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Coming Soon</p>
+                    </TooltipContent>
+                  </Tooltip>
+                );
+              })}
+            </div>
           </div>
         </div>
       </div>
