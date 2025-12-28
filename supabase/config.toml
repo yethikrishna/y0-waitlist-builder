@@ -2,3 +2,12 @@ project_id = "hzlhpngyebpdhskrixpk"
 
 [functions.notify-admin-signup]
 verify_jwt = false
+
+[functions.check-email-exists]
+verify_jwt = false
+
+[functions.admin-get-signups]
+verify_jwt = false
+
+[functions.admin-check-role]
+verify_jwt = false
