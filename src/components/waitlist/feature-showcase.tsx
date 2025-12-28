@@ -5,7 +5,8 @@ import { Card } from "@/components/ui/card";
 import { 
   Zap, FolderOpen, Globe, CircleDashed, Presentation, 
   BarChart3, FileText, Search, Image as ImageIcon, 
-  CornerDownLeft, Paperclip, Mic
+  CornerDownLeft, Paperclip, Mic, Database, Code, Calendar,
+  Share2, Plane, TrendingUp
 } from "lucide-react";
 
 type ViewType = "terminal" | "files" | "browser";
@@ -16,19 +17,93 @@ interface Step {
   title?: string;
   view?: ViewType;
   icon?: string;
-  contentType?: "empty" | "slides" | "chart" | "image";
+  contentType?: "empty" | "slides" | "chart" | "image" | "markdown" | "search" | "table";
+  contentMarkdown?: string;
 }
 
 const exampleShowcases = [
   {
-    id: "slides",
-    title: "Presentations",
-    description: "Create a presentation about neural networks",
+    id: "code",
+    title: "Code & Deploy",
+    description: "Build a landing page and deploy it to Vercel",
     steps: [
-      { type: "message", aiText: "I'll research neural networks and create a presentation for you..." } as Step,
-      { type: "toolcall", title: "Researching", view: "browser" as ViewType, icon: "search" } as Step,
-      { type: "toolcall", title: "Creating File", view: "files" as ViewType, icon: "file" } as Step,
-      { type: "toolcall", title: "Creating Slides", view: "terminal" as ViewType, icon: "presentation", contentType: "slides" as const } as Step,
+      { type: "message", aiText: "I'll create a modern landing page and deploy it for you..." } as Step,
+      { 
+        type: "toolcall", 
+        title: "Creating Components", 
+        view: "terminal" as ViewType, 
+        icon: "file",
+        contentType: "markdown" as const,
+        contentMarkdown: `// Hero.tsx
+export function Hero() {
+  return (
+    <section className="hero">
+      <h1>Welcome to Acme</h1>
+      <button>Get Started</button>
+    </section>
+  )
+}`
+      } as Step,
+      { 
+        type: "toolcall", 
+        title: "Running Dev Server", 
+        view: "browser" as ViewType, 
+        icon: "computer",
+        contentType: "image" as const
+      } as Step,
+      { 
+        type: "toolcall", 
+        title: "Deploying to Vercel", 
+        view: "terminal" as ViewType, 
+        icon: "database",
+        contentType: "markdown" as const,
+        contentMarkdown: `✓ Building project...
+✓ Optimizing assets...
+✓ Deploying to Vercel...
+
+🚀 Deployed successfully!
+https://acme-landing.vercel.app`
+      } as Step,
+    ],
+  },
+  {
+    id: "research",
+    title: "Deep Research",
+    description: "Research quantum computing and write a summary",
+    steps: [
+      { type: "message", aiText: "I'll research quantum computing from multiple sources..." } as Step,
+      { 
+        type: "toolcall", 
+        title: "Reading Papers", 
+        view: "browser" as ViewType, 
+        icon: "search",
+        contentType: "search" as const
+      } as Step,
+      { 
+        type: "toolcall", 
+        title: "Analyzing Sources", 
+        view: "terminal" as ViewType, 
+        icon: "database",
+        contentType: "table" as const
+      } as Step,
+      { 
+        type: "toolcall", 
+        title: "Writing Summary", 
+        view: "terminal" as ViewType, 
+        icon: "file",
+        contentType: "markdown" as const,
+        contentMarkdown: `# Quantum Computing
+
+## Key Concepts
+• Qubits: Superposition states
+• Entanglement: Correlation
+• Quantum Gates: Operations
+
+## Current Leaders
+1. IBM - 1,121 qubits
+2. Google - 70 qubits
+3. IonQ - 32 qubits`
+      } as Step,
     ],
   },
   {
@@ -37,20 +112,79 @@ const exampleShowcases = [
     description: "Analyze Q4 sales performance",
     steps: [
       { type: "message", aiText: "I'll load your sales data and create a comprehensive analysis..." } as Step,
-      { type: "toolcall", title: "Loading Data", view: "browser" as ViewType, icon: "database" } as Step,
+      { type: "toolcall", title: "Loading Data", view: "browser" as ViewType, icon: "database", contentType: "table" as const } as Step,
       { type: "toolcall", title: "Creating Visualization", view: "terminal" as ViewType, icon: "chart", contentType: "chart" as const } as Step,
-      { type: "toolcall", title: "Creating Report", view: "terminal" as ViewType, icon: "file" } as Step,
+      { 
+        type: "toolcall", 
+        title: "Creating Report", 
+        view: "terminal" as ViewType, 
+        icon: "file",
+        contentType: "markdown" as const,
+        contentMarkdown: `# Q4 Sales Report
+
+## Summary
+• Revenue: $2.4M (+18%)
+• New Customers: 847
+• Retention: 94%
+
+## Top Products
+1. Enterprise Plan
+2. Team License
+3. Starter Pack`
+      } as Step,
     ],
   },
   {
-    id: "image",
-    title: "Image Creation",
-    description: "Create logo for our company",
+    id: "travel",
+    title: "Travel Plan",
+    description: "Plan a 5-day trip to Tokyo with budget",
     steps: [
-      { type: "message", aiText: "I'll create a professional logo for your brand..." } as Step,
-      { type: "toolcall", title: "Researching Brand", view: "browser" as ViewType, icon: "search" } as Step,
-      { type: "toolcall", title: "Creating Logo", view: "terminal" as ViewType, icon: "image", contentType: "image" as const } as Step,
-      { type: "toolcall", title: "Creating Mockups", view: "terminal" as ViewType, icon: "presentation" } as Step,
+      { type: "message", aiText: "I'll create a complete Tokyo itinerary for you..." } as Step,
+      { type: "toolcall", title: "Searching Flights", view: "browser" as ViewType, icon: "search", contentType: "search" as const } as Step,
+      { type: "toolcall", title: "Finding Hotels", view: "browser" as ViewType, icon: "database", contentType: "table" as const } as Step,
+      { 
+        type: "toolcall", 
+        title: "Creating Itinerary", 
+        view: "terminal" as ViewType, 
+        icon: "presentation",
+        contentType: "markdown" as const,
+        contentMarkdown: `# Tokyo 5-Day Trip
+
+## Budget: $2,450
+
+**Day 1** - Shibuya
+**Day 2** - Temples
+**Day 3** - Mt. Fuji
+**Day 4** - Food Tour
+**Day 5** - Shopping`
+      } as Step,
+    ],
+  },
+  {
+    id: "analysis",
+    title: "Competitor Intel",
+    description: "Analyze our top 3 competitors and pricing",
+    steps: [
+      { type: "message", aiText: "I'll research your competitors and create a comparison..." } as Step,
+      { type: "toolcall", title: "Scraping Websites", view: "browser" as ViewType, icon: "search", contentType: "search" as const } as Step,
+      { type: "toolcall", title: "Analyzing Pricing", view: "terminal" as ViewType, icon: "chart", contentType: "table" as const } as Step,
+      { 
+        type: "toolcall", 
+        title: "Creating Report", 
+        view: "terminal" as ViewType, 
+        icon: "file",
+        contentType: "markdown" as const,
+        contentMarkdown: `# Competitive Analysis
+
+| Feature | Us | A | B |
+|---------|-----|---|---|
+| Price | $29 | $49 | $39 |
+| Users | ∞ | 5 | 10 |
+| API | ✓ | ✓ | ✗ |
+
+✓ Best value
+✓ Unlimited users`
+      } as Step,
     ],
   },
 ];
@@ -62,6 +196,12 @@ const getIconComponent = (iconType?: string) => {
     case "file": return FileText;
     case "search": return Search;
     case "image": return ImageIcon;
+    case "database": return Database;
+    case "computer": return Code;
+    case "calendar": return Calendar;
+    case "social": return Share2;
+    case "travel": return Plane;
+    case "trending": return TrendingUp;
     default: return Zap;
   }
 };
@@ -126,6 +266,115 @@ export const FeatureShowcase = () => {
       return () => clearTimeout(timer);
     }
   }, [currentStepIndex, currentExample, activeExample]);
+
+  const renderContent = () => {
+    if (currentStep?.contentType === "markdown" && currentStep.contentMarkdown) {
+      return (
+        <div className="space-y-3 w-full max-w-xs">
+          <div className="bg-card rounded-xl border p-4 text-left">
+            <pre className="text-xs font-mono text-foreground whitespace-pre-wrap leading-relaxed">
+              {currentStep.contentMarkdown}
+            </pre>
+          </div>
+        </div>
+      );
+    }
+
+    if (currentStep?.contentType === "search") {
+      return (
+        <div className="space-y-2 w-full max-w-xs">
+          {[1, 2, 3].map((i) => (
+            <motion.div
+              key={i}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.15 }}
+              className="bg-card rounded-lg border p-3 text-left"
+            >
+              <div className="h-2 w-3/4 bg-primary/20 rounded mb-2" />
+              <div className="h-2 w-1/2 bg-muted rounded" />
+            </motion.div>
+          ))}
+          <p className="text-sm text-muted-foreground pt-2">Searching sources...</p>
+        </div>
+      );
+    }
+
+    if (currentStep?.contentType === "table") {
+      return (
+        <div className="space-y-2 w-full max-w-xs">
+          <div className="bg-card rounded-xl border overflow-hidden">
+            <div className="grid grid-cols-3 gap-px bg-border">
+              {[...Array(9)].map((_, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: i * 0.05 }}
+                  className={`p-2 ${i < 3 ? 'bg-muted' : 'bg-card'}`}
+                >
+                  <div className={`h-2 ${i < 3 ? 'bg-foreground/20' : 'bg-muted'} rounded`} />
+                </motion.div>
+              ))}
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground">Processing data...</p>
+        </div>
+      );
+    }
+
+    if (currentStep?.contentType === "slides") {
+      return (
+        <div className="space-y-4">
+          <div className="w-72 h-40 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl flex items-center justify-center border">
+            <Presentation className="w-12 h-12 text-primary" />
+          </div>
+          <p className="text-sm text-muted-foreground">Creating slides...</p>
+        </div>
+      );
+    }
+
+    if (currentStep?.contentType === "chart") {
+      return (
+        <div className="space-y-4">
+          <div className="w-72 h-40 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl flex items-center justify-center border relative overflow-hidden">
+            <div className="absolute bottom-4 left-4 right-4 flex items-end gap-2 h-20">
+              {[40, 65, 45, 80, 55, 70].map((h, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ height: 0 }}
+                  animate={{ height: `${h}%` }}
+                  transition={{ delay: i * 0.1, duration: 0.5 }}
+                  className="flex-1 bg-primary/60 rounded-t"
+                />
+              ))}
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground">Generating chart...</p>
+        </div>
+      );
+    }
+
+    if (currentStep?.contentType === "image") {
+      return (
+        <div className="space-y-4">
+          <div className="w-72 h-40 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl flex items-center justify-center border">
+            <ImageIcon className="w-12 h-12 text-primary" />
+          </div>
+          <p className="text-sm text-muted-foreground">Rendering preview...</p>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-4">
+        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
+          <Zap className="w-8 h-8 text-muted-foreground animate-pulse" />
+        </div>
+        <p className="text-sm text-muted-foreground">Processing...</p>
+      </div>
+    );
+  };
 
   return (
     <section className="py-24 px-6">
@@ -297,40 +546,9 @@ export const FeatureShowcase = () => {
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
                         transition={{ duration: 0.3 }}
-                        className="text-center"
+                        className="text-center flex flex-col items-center"
                       >
-                        {currentStep?.contentType === "slides" && (
-                          <div className="space-y-4">
-                            <div className="w-72 h-40 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl flex items-center justify-center border">
-                              <Presentation className="w-12 h-12 text-primary" />
-                            </div>
-                            <p className="text-sm text-muted-foreground">Creating slides...</p>
-                          </div>
-                        )}
-                        {currentStep?.contentType === "chart" && (
-                          <div className="space-y-4">
-                            <div className="w-72 h-40 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl flex items-center justify-center border">
-                              <BarChart3 className="w-12 h-12 text-primary" />
-                            </div>
-                            <p className="text-sm text-muted-foreground">Generating visualization...</p>
-                          </div>
-                        )}
-                        {currentStep?.contentType === "image" && (
-                          <div className="space-y-4">
-                            <div className="w-72 h-40 bg-gradient-to-br from-primary/20 to-primary/5 rounded-xl flex items-center justify-center border">
-                              <ImageIcon className="w-12 h-12 text-primary" />
-                            </div>
-                            <p className="text-sm text-muted-foreground">Creating logo...</p>
-                          </div>
-                        )}
-                        {!currentStep?.contentType && (
-                          <div className="space-y-4">
-                            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto">
-                              <Zap className="w-8 h-8 text-muted-foreground animate-pulse" />
-                            </div>
-                            <p className="text-sm text-muted-foreground">Processing...</p>
-                          </div>
-                        )}
+                        {renderContent()}
                       </motion.div>
                     </AnimatePresence>
                   </div>
