@@ -6,9 +6,25 @@ export interface WaitlistSignupRow {
   email: string;
   referral_code: string | null;
   referred_by: string | null;
+  referral_count: number | null;
   position: number | null;
   created_at: string | null;
   metadata: Json | null;
+}
+
+export interface TopReferrer {
+  email: string;
+  referral_code: string;
+  referral_count: number;
+  position: number | null;
+}
+
+export interface ReferralStats {
+  totalReferrals: number;
+  referredSignups: number;
+  conversionRate: number;
+  topReferrers: TopReferrer[];
+  avgReferralsPerUser: number;
 }
 
 export async function getWaitlistSignups(): Promise<WaitlistSignupRow[]> {
@@ -26,13 +42,14 @@ export async function getWaitlistSignups(): Promise<WaitlistSignupRow[]> {
 }
 
 export function exportToCSV(signups: WaitlistSignupRow[], filename: string = 'waitlist-signups.csv'): void {
-  const headers = ['Position', 'Email', 'Referral Code', 'Referred By', 'Signed Up'];
+  const headers = ['Position', 'Email', 'Referral Code', 'Referred By', 'Referral Count', 'Signed Up'];
   
   const rows = signups.map(signup => [
     signup.position?.toString() || '',
     signup.email,
     signup.referral_code || '',
     signup.referred_by || '',
+    signup.referral_count?.toString() || '0',
     signup.created_at ? new Date(signup.created_at).toLocaleString() : ''
   ]);
 
@@ -51,4 +68,41 @@ export function exportToCSV(signups: WaitlistSignupRow[], filename: string = 'wa
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+}
+
+export function calculateReferralStats(signups: WaitlistSignupRow[]): ReferralStats {
+  const totalSignups = signups.length;
+  const referredSignups = signups.filter(s => s.referred_by).length;
+  const totalReferrals = signups.reduce((acc, s) => acc + (s.referral_count || 0), 0);
+  
+  // Users who have made at least one referral
+  const usersWithReferrals = signups.filter(s => (s.referral_count || 0) > 0);
+  const avgReferralsPerUser = usersWithReferrals.length > 0 
+    ? totalReferrals / usersWithReferrals.length 
+    : 0;
+  
+  // Conversion rate: referred signups / total signups
+  const conversionRate = totalSignups > 0 
+    ? (referredSignups / totalSignups) * 100 
+    : 0;
+  
+  // Get top 10 referrers
+  const topReferrers: TopReferrer[] = signups
+    .filter(s => (s.referral_count || 0) > 0 && s.referral_code)
+    .sort((a, b) => (b.referral_count || 0) - (a.referral_count || 0))
+    .slice(0, 10)
+    .map(s => ({
+      email: s.email,
+      referral_code: s.referral_code!,
+      referral_count: s.referral_count || 0,
+      position: s.position
+    }));
+  
+  return {
+    totalReferrals,
+    referredSignups,
+    conversionRate,
+    topReferrers,
+    avgReferralsPerUser
+  };
 }

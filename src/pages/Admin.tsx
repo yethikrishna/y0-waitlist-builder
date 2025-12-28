@@ -2,7 +2,8 @@ import { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { 
   Search, Download, Users, TrendingUp, Calendar, 
-  ArrowUpDown, ChevronLeft, ChevronRight, Lock, Eye, EyeOff
+  ArrowUpDown, ChevronLeft, ChevronRight, Lock, Eye, EyeOff,
+  Share2, Award, Percent, Trophy
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +24,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
-import { getWaitlistSignups, exportToCSV, WaitlistSignupRow } from "@/lib/admin";
+import { getWaitlistSignups, exportToCSV, calculateReferralStats, WaitlistSignupRow, ReferralStats } from "@/lib/admin";
 import { Y0LogoMark } from "@/components/ui/y0-logo";
 
 const ADMIN_PASSWORD = "y0admin2024"; // Simple password protection
@@ -190,6 +191,9 @@ const Admin = () => {
     return { total: signups.length, today: todaySignups, week: weekSignups, referred: referredSignups };
   }, [signups]);
 
+  // Referral analytics
+  const referralStats = useMemo(() => calculateReferralStats(signups), [signups]);
+
   // Login screen
   if (!isAuthenticated) {
     return (
@@ -304,6 +308,86 @@ const Admin = () => {
           </Card>
         </div>
 
+        {/* Referral Analytics Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Referral Stats Cards */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Share2 className="w-5 h-5 text-primary" />
+              Referral Analytics
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="bg-muted/50 rounded-xl p-4">
+                <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+                  <TrendingUp className="w-4 h-4" />
+                  Total Referrals
+                </div>
+                <p className="text-2xl font-bold">{referralStats.totalReferrals}</p>
+              </div>
+              <div className="bg-muted/50 rounded-xl p-4">
+                <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+                  <Percent className="w-4 h-4" />
+                  Conversion Rate
+                </div>
+                <p className="text-2xl font-bold">{referralStats.conversionRate.toFixed(1)}%</p>
+              </div>
+              <div className="bg-muted/50 rounded-xl p-4">
+                <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+                  <Users className="w-4 h-4" />
+                  Referred Signups
+                </div>
+                <p className="text-2xl font-bold">{referralStats.referredSignups}</p>
+              </div>
+              <div className="bg-muted/50 rounded-xl p-4">
+                <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">
+                  <Award className="w-4 h-4" />
+                  Avg per Referrer
+                </div>
+                <p className="text-2xl font-bold">{referralStats.avgReferralsPerUser.toFixed(1)}</p>
+              </div>
+            </div>
+          </Card>
+
+          {/* Top Referrers Leaderboard */}
+          <Card className="p-6">
+            <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+              <Trophy className="w-5 h-5 text-primary" />
+              Top Referrers
+            </h3>
+            {referralStats.topReferrers.length === 0 ? (
+              <p className="text-muted-foreground text-center py-8">No referrals yet</p>
+            ) : (
+              <div className="space-y-3">
+                {referralStats.topReferrers.slice(0, 5).map((referrer, index) => (
+                  <div 
+                    key={referrer.referral_code} 
+                    className="flex items-center gap-3 p-3 bg-muted/50 rounded-xl"
+                  >
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${
+                      index === 0 ? 'bg-yellow-500/20 text-yellow-600' :
+                      index === 1 ? 'bg-gray-400/20 text-gray-600' :
+                      index === 2 ? 'bg-amber-600/20 text-amber-700' :
+                      'bg-muted text-muted-foreground'
+                    }`}>
+                      {index + 1}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{referrer.email}</p>
+                      <p className="text-xs text-muted-foreground">
+                        Position #{referrer.position}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-primary">{referrer.referral_count}</p>
+                      <p className="text-xs text-muted-foreground">referrals</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </Card>
+        </div>
+
         {/* Filters */}
         <Card className="p-4">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -362,6 +446,7 @@ const Admin = () => {
                   </TableHead>
                   <TableHead>Referral Code</TableHead>
                   <TableHead>Referred By</TableHead>
+                  <TableHead className="text-center">Referrals</TableHead>
                   <TableHead 
                     className="cursor-pointer hover:bg-muted/50"
                     onClick={() => handleSort("created_at")}
@@ -376,13 +461,13 @@ const Admin = () => {
               <TableBody>
                 {isLoading ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                       Loading...
                     </TableCell>
                   </TableRow>
                 ) : paginatedSignups.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                       {searchQuery ? "No signups found matching your search" : "No signups yet"}
                     </TableCell>
                   </TableRow>
@@ -405,6 +490,15 @@ const Admin = () => {
                           </code>
                         ) : (
                           <span className="text-muted-foreground">-</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {(signup.referral_count || 0) > 0 ? (
+                          <span className="inline-flex items-center gap-1 px-2 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium">
+                            {signup.referral_count}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">0</span>
                         )}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
